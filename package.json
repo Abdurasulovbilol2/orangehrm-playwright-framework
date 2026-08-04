@@ -1,0 +1,17 @@
+{
+  "name": "orangehrm-playwright-framework",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright test automation framework for OrangeHRM",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "@types/node": "^22.12.0",
+    "typescript": "^5.8.2"
+  }
+}
