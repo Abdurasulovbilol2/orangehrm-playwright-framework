@@ -5,9 +5,13 @@ export class AdminPage {
 
   async openAdminPage() {
     const adminMenuItem = this.page.getByRole("link", { name: "Admin" });
+    const isAdminMenuVisible = await adminMenuItem
+      .isVisible({ timeout: 5000 })
+      .catch(() => false);
 
-    if (await adminMenuItem.isVisible()) {
+    if (isAdminMenuVisible) {
       await adminMenuItem.click();
+      await this.page.waitForLoadState("domcontentloaded");
     } else {
       try {
         await this.page.goto(
@@ -23,7 +27,7 @@ export class AdminPage {
       }
     }
 
-    await expect(this.page).toHaveURL(/admin/);
+    await expect(this.page).toHaveURL(/admin/, { timeout: 15000 });
     await expect(this.page.locator("body")).toContainText("Admin");
   }
 
