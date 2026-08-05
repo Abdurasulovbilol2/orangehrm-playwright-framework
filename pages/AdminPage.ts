@@ -4,9 +4,26 @@ export class AdminPage {
   constructor(private page: Page) {}
 
   async openAdminPage() {
-    await this.page.goto(
-      "https://opensource-demo.orangehrmlive.com/web/index.php/admin/viewSystemUsers",
-    );
+    const adminMenuItem = this.page.getByRole("link", { name: "Admin" });
+
+    if (await adminMenuItem.isVisible()) {
+      await adminMenuItem.click();
+    } else {
+      try {
+        await this.page.goto(
+          "https://opensource-demo.orangehrmlive.com/web/index.php/admin/viewSystemUsers",
+          { waitUntil: "domcontentloaded" },
+        );
+      } catch {
+        await this.page.waitForTimeout(1000);
+        await this.page.goto(
+          "https://opensource-demo.orangehrmlive.com/web/index.php/admin/viewSystemUsers",
+          { waitUntil: "domcontentloaded" },
+        );
+      }
+    }
+
+    await expect(this.page).toHaveURL(/admin/);
     await expect(this.page.locator("body")).toContainText("Admin");
   }
 
