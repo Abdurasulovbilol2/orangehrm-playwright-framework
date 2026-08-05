@@ -11,6 +11,9 @@ export class AdminPage {
   }
 
   async searchUser(username: string) {
-    await this.page.getByPlaceholder("Type for hints...").fill(username);
+    const input = this.page.locator('input[placeholder="Type for hints..."]');
+    await input.waitFor({ state: "visible" });
+    await input.fill(username);
+    await this.page.waitForLoadState("networkidle");
   }
 }
