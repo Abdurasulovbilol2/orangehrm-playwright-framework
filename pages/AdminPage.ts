@@ -1,34 +1,44 @@
 import { Page, expect } from "@playwright/test";
 
 export class AdminPage {
+  private readonly adminUrl =
+    "https://opensource-demo.orangehrmlive.com/web/index.php/admin/viewSystemUsers";
+
   constructor(private page: Page) {}
 
   async openAdminPage() {
     const adminMenuItem = this.page.getByRole("link", { name: "Admin" });
     const isAdminMenuVisible = await adminMenuItem
-      .isVisible({ timeout: 5000 })
+      .isVisible({ timeout: 15000 })
       .catch(() => false);
 
     if (isAdminMenuVisible) {
       await adminMenuItem.click();
       await this.page.waitForLoadState("domcontentloaded");
     } else {
-      try {
-        await this.page.goto(
-          "https://opensource-demo.orangehrmlive.com/web/index.php/admin/viewSystemUsers",
-          { waitUntil: "domcontentloaded" },
-        );
-      } catch {
-        await this.page.waitForTimeout(1000);
-        await this.page.goto(
-          "https://opensource-demo.orangehrmlive.com/web/index.php/admin/viewSystemUsers",
-          { waitUntil: "domcontentloaded" },
-        );
-      }
+      await this.page.goto(this.adminUrl, {
+        waitUntil: "domcontentloaded",
+        timeout: 60000,
+      });
     }
 
-    await expect(this.page).toHaveURL(/admin/, { timeout: 15000 });
-    await expect(this.page.locator("body")).toContainText("Admin");
+    await expect(this.page).toHaveURL(/admin/, { timeout: 30000 });
+
+    const adminHeader = this.page.locator(
+      "h6.oxd-topbar-header-breadcrumb-module",
+    );
+
+    try {
+      await expect(adminHeader).toContainText("Admin", { timeout: 15000 });
+    } catch {
+      // Retry a direct admin route once when the first render returns a blank page in CI.
+      await this.page.goto(this.adminUrl, {
+        waitUntil: "domcontentloaded",
+        timeout: 60000,
+      });
+      await expect(this.page).toHaveURL(/admin/, { timeout: 30000 });
+      await expect(adminHeader).toContainText("Admin", { timeout: 20000 });
+    }
   }
 
   async searchUser(username: string) {

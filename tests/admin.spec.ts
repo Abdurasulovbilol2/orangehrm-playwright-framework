@@ -3,6 +3,8 @@ import { LoginPage } from "../pages/LoginPage";
 import { AdminPage } from "../pages/AdminPage";
 
 test("open admin page", async ({ page }) => {
+  test.setTimeout(60000);
+
   const loginPage = new LoginPage(page);
   await loginPage.gotoLoginPage();
   await loginPage.loginAndWaitForDashboard("Admin", "admin123");
