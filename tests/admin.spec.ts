@@ -30,6 +30,7 @@ test("click Add and select user role", async ({ page }) => {
   await adminPage.selectstatus("Enabled");
   await adminPage.fillUsername("Bilol.test111");
   await adminPage.Choosepassword("Bilolafghan1@");
+  await adminPage.clickbuttonsave();
 
   await expect(
     page.locator(".oxd-form .oxd-select-text").first(),

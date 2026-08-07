@@ -84,13 +84,9 @@ export class AdminPage {
     await input.fill(username);
   }
 
-  // async Choosepassword(password: string) {
-  //   const input = this.page
-  //     .locator("oxd-form input[autocomplete='off']")
-  //     .nth(1);
-  //   await input.waitFor({ state: "visible" });
-  //   await input.fill(password);
-  // }
+  async clickbuttonsave() {
+    await this.page.getByRole("button", { name: "save" }).click;
+  }
 
   async searchUser(username: string) {
     const input = this.page.locator('input[placeholder="Type for hints..."]');
