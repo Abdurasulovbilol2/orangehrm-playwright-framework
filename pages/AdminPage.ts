@@ -41,6 +41,57 @@ export class AdminPage {
     }
   }
 
+  async clickAddButton() {
+    await this.page.getByRole("button", { name: "Add" }).click();
+  }
+
+  async selectUserRole(role: string) {
+    const dropdown = this.page.locator(".oxd-form .oxd-select-text").first();
+    await dropdown.click();
+    await this.page.getByRole("option", { name: role }).click();
+  }
+
+  async fillEmployeeName(name: string) {
+    const input = this.page.locator(
+      ".oxd-form input[placeholder='Type for hints...']",
+    );
+    await input.waitFor({ state: "visible" });
+    await input.fill(name); // 1. types "charifa bel belgueroua"
+
+    const suggestion = this.page
+      .locator(".oxd-autocomplete-dropdown .oxd-autocomplete-option")
+      .first();
+    await suggestion.waitFor({ state: "visible", timeout: 10000 }); // 2. waits for dropdown
+    await suggestion.click(); // 3. clicks the suggestion
+  }
+
+  async selectstatus(status: string) {
+    const dropdown = this.page.locator(".oxd-form .oxd-select-text").nth(1);
+    await dropdown.click();
+    await this.page.getByRole("option", { name: status }).click();
+  }
+
+  async Choosepassword(password: string) {
+    const fields = this.page.locator("input[type='password']");
+    await fields.nth(0).fill(password);
+    await fields.nth(1).fill(password);
+  }
+  async fillUsername(username: string) {
+    const input = this.page
+      .locator(".oxd-form input[autocomplete='off']")
+      .first();
+    await input.waitFor({ state: "visible" });
+    await input.fill(username);
+  }
+
+  // async Choosepassword(password: string) {
+  //   const input = this.page
+  //     .locator("oxd-form input[autocomplete='off']")
+  //     .nth(1);
+  //   await input.waitFor({ state: "visible" });
+  //   await input.fill(password);
+  // }
+
   async searchUser(username: string) {
     const input = this.page.locator('input[placeholder="Type for hints..."]');
     await input.waitFor({ state: "visible" });
@@ -48,3 +99,10 @@ export class AdminPage {
     await this.page.waitForLoadState("networkidle");
   }
 }
+
+// Example usage:
+// const adminPage = new AdminPage(page);
+// await adminPage.openAdminPage();
+// await adminPage.clickAddButton();
+// await adminPage.selectUserRole("Admin"); // or "ESS");
+// await adminPage.searchUser("john.doe");
