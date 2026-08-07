@@ -11,9 +11,9 @@ export default defineConfig({
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
-    headless: false,
+    headless: !!process.env.CI,
     launchOptions: {
-      slowMo: 800,
+      slowMo: process.env.CI ? 0 : 800,
     },
   },
   projects: [
