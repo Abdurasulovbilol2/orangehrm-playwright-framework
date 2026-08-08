@@ -59,6 +59,24 @@ export class MyInfoPage {
     await this.page.locator("input[name='lastName']").fill(data.lastName);
   }
 
+  async fillEmployeeId(employeeId: string) {
+    const employeeIdInput = this.page
+      .locator("div.oxd-input-group:has(label:has-text('Employee Id')) input")
+      .first();
+
+    await expect(employeeIdInput).toBeVisible({ timeout: 15000 });
+    await employeeIdInput.fill(employeeId);
+  }
+
+  async getEmployeeId() {
+    const employeeIdInput = this.page
+      .locator("div.oxd-input-group:has(label:has-text('Employee Id')) input")
+      .first();
+
+    await expect(employeeIdInput).toBeVisible({ timeout: 15000 });
+    return employeeIdInput.inputValue();
+  }
+
   async savePersonalDetails() {
     await this.page.getByRole("button", { name: "Save" }).first().click();
 
