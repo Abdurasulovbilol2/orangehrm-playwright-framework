@@ -14,9 +14,9 @@ test("open my info and verify personal details", async ({ page }) => {
   await myInfoPage.assertPersonalDetailsLoaded();
 
   const updatedDetails = {
-    firstName: "Paulo",
-    middleName: "PedroQA",
-    lastName: "PontesQA",
+    firstName: "Bilol",
+    middleName: "Abdurasul",
+    lastName: "Abdurasul",
   };
 
   await myInfoPage.fillPersonalNameDetails(updatedDetails);
