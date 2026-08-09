@@ -82,7 +82,7 @@ export class MyInfoPage {
 
     const successToast = this.page.locator(".oxd-toast").first();
     await expect(successToast).toContainText(/Successfully/, {
-      timeout: 15000,
+      timeout: 12000,
     });
   }
 }
