@@ -59,9 +59,32 @@ export class MyInfoPage {
     middleName: string;
     lastName: string;
   }) {
-    await this.page.locator("input[name='firstName']").fill(data.firstName);
-    await this.page.locator("input[name='middleName']").fill(data.middleName);
-    await this.page.locator("input[name='lastName']").fill(data.lastName);
+    // pressSequentially fires per-keystroke events that Vue's v-model requires
+    for (const [name, value] of [
+      ["firstName", data.firstName],
+      ["middleName", data.middleName],
+      ["lastName", data.lastName],
+    ] as const) {
+      const input = this.page.locator(`input[name='${name}']`);
+      await input.click({ clickCount: 3 });
+      await input.pressSequentially(value);
+    }
+  }
+
+  async assertPersonalNameDetails(data: {
+    firstName: string;
+    middleName: string;
+    lastName: string;
+  }) {
+    await expect(this.page.locator("input[name='firstName']")).toHaveValue(
+      data.firstName,
+    );
+    await expect(this.page.locator("input[name='middleName']")).toHaveValue(
+      data.middleName,
+    );
+    await expect(this.page.locator("input[name='lastName']")).toHaveValue(
+      data.lastName,
+    );
   }
 
   async fillEmployeeId(employeeId: string) {
@@ -80,6 +103,13 @@ export class MyInfoPage {
 
     await expect(employeeIdInput).toBeVisible({ timeout: 15000 });
     return employeeIdInput.inputValue();
+  }
+
+  async assertEmployeeId(expected: string) {
+    const input = this.page
+      .locator("div.oxd-input-group:has(label:has-text('Employee Id')) input")
+      .first();
+    await expect(input).toHaveValue(expected);
   }
 
   async savePersonalDetails() {
