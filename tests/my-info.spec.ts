@@ -16,13 +16,34 @@ test("open my info and verify personal details", async ({ page }) => {
     middleName: "Abdurasul",
     lastName: "Abdurasul",
   };
-  const updatedEmployeeId = "1011";
+  const updatedEmployeeId = "1234";
+  const updatedOtherId = "56789";
+  const updatedDriversLicense = "101112";
+  const updatedLicenseExpiry = "2025-31-12";
+  const updatedNationality = "Uzbekistan";
+  const updatedMaritalStatus = "Single";
+  const updatedDateOfBirth = "2005-24-02";
+  const updatedGender = "Male" as const;
 
   await myInfoPage.fillPersonalNameDetails(updatedDetails);
   await myInfoPage.fillEmployeeId(updatedEmployeeId);
+  await myInfoPage.fillOtherId(updatedOtherId);
+  await myInfoPage.fillDriversLicense(updatedDriversLicense);
+  await myInfoPage.fillLicenseExpiryDate(updatedLicenseExpiry);
+  await myInfoPage.selectNationality(updatedNationality);
+  await myInfoPage.selectMaritalStatus(updatedMaritalStatus);
+  await myInfoPage.fillDateOfBirth(updatedDateOfBirth);
+  await myInfoPage.selectGender(updatedGender);
 
   await myInfoPage.assertPersonalNameDetails(updatedDetails);
   await myInfoPage.assertEmployeeId(updatedEmployeeId);
+  await myInfoPage.assertOtherId(updatedOtherId);
+  await myInfoPage.assertDriversLicense(updatedDriversLicense);
+  await myInfoPage.assertLicenseExpiryDate(updatedLicenseExpiry);
+  await myInfoPage.assertNationality(updatedNationality);
+  await myInfoPage.assertMaritalStatus(updatedMaritalStatus);
+  await myInfoPage.assertDateOfBirth(updatedDateOfBirth);
+  await myInfoPage.assertGender(updatedGender);
 
   await myInfoPage.savePersonalDetails();
 });

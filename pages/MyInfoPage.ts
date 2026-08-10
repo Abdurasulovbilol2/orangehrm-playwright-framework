@@ -105,6 +105,114 @@ export class MyInfoPage {
     await expect(input).toHaveValue(expected);
   }
 
+  async fillOtherId(otherId: string) {
+    const input = this.page
+      .locator("div.oxd-input-group:has(label:has-text('Other Id')) input")
+      .first();
+    await expect(input).toBeVisible({ timeout: 15000 });
+    await input.fill(otherId);
+  }
+
+  async assertOtherId(expected: string) {
+    const input = this.page
+      .locator("div.oxd-input-group:has(label:has-text('Other Id')) input")
+      .first();
+    await expect(input).toHaveValue(expected);
+  }
+
+  async fillDriversLicense(licenseNumber: string) {
+    const input = this.page
+      .locator(
+        'div.oxd-input-group:has(label:has-text("Driver\'s License Number")) input',
+      )
+      .first();
+    await expect(input).toBeVisible({ timeout: 15000 });
+    await input.fill(licenseNumber);
+  }
+
+  async assertDriversLicense(expected: string) {
+    const input = this.page
+      .locator(
+        'div.oxd-input-group:has(label:has-text("Driver\'s License Number")) input',
+      )
+      .first();
+    await expect(input).toHaveValue(expected);
+  }
+
+  async fillLicenseExpiryDate(date: string) {
+    const input = this.page
+      .locator(
+        "div.oxd-input-group:has(label:has-text('License Expiry Date')) input",
+      )
+      .first();
+    await expect(input).toBeVisible({ timeout: 15000 });
+    await input.fill(date);
+  }
+
+  async assertLicenseExpiryDate(expected: string) {
+    const input = this.page
+      .locator(
+        "div.oxd-input-group:has(label:has-text('License Expiry Date')) input",
+      )
+      .first();
+    await expect(input).toHaveValue(expected);
+  }
+
+  async selectNationality(nationality: string) {
+    const dropdown = this.page.locator(
+      "div.oxd-input-group:has(label:has-text('Nationality')) .oxd-select-text",
+    );
+    await dropdown.click();
+    await this.page.getByRole("option", { name: nationality }).click();
+  }
+
+  async assertNationality(expected: string) {
+    const dropdown = this.page.locator(
+      "div.oxd-input-group:has(label:has-text('Nationality')) .oxd-select-text",
+    );
+    await expect(dropdown).toContainText(expected);
+  }
+
+  async selectMaritalStatus(status: string) {
+    const dropdown = this.page.locator(
+      "div.oxd-input-group:has(label:has-text('Marital Status')) .oxd-select-text",
+    );
+    await dropdown.click();
+    await this.page.getByRole("option", { name: status }).click();
+  }
+
+  async assertMaritalStatus(expected: string) {
+    const dropdown = this.page.locator(
+      "div.oxd-input-group:has(label:has-text('Marital Status')) .oxd-select-text",
+    );
+    await expect(dropdown).toContainText(expected);
+  }
+
+  async fillDateOfBirth(date: string) {
+    const input = this.page
+      .locator("div.oxd-input-group:has(label:has-text('Date of Birth')) input")
+      .first();
+    await expect(input).toBeVisible({ timeout: 15000 });
+    await input.fill(date);
+  }
+
+  async assertDateOfBirth(expected: string) {
+    const input = this.page
+      .locator("div.oxd-input-group:has(label:has-text('Date of Birth')) input")
+      .first();
+    await expect(input).toHaveValue(expected);
+  }
+
+  async selectGender(gender: "Male" | "Female") {
+    await this.page.getByRole("radio", { name: gender, exact: true }).check();
+  }
+
+  async assertGender(gender: "Male" | "Female") {
+    await expect(
+      this.page.getByRole("radio", { name: gender, exact: true }),
+    ).toBeChecked();
+  }
+
   async savePersonalDetails() {
     await this.page.getByRole("button", { name: "Save" }).first().click();
 
