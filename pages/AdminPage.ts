@@ -85,7 +85,7 @@ export class AdminPage {
   }
 
   async clickbuttonsave() {
-    await this.page.getByRole("button", { name: "save" }).click;
+    await this.page.getByRole("button", { name: "Save" }).click();
   }
 
   async searchUser(username: string) {

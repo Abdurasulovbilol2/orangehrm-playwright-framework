@@ -36,6 +36,11 @@ export class MyInfoPage {
     await expect(this.page.locator("input[name='firstName']")).toBeVisible();
     await expect(this.page.locator("input[name='middleName']")).toBeVisible();
     await expect(this.page.locator("input[name='lastName']")).toBeVisible();
+    // Wait for async server data to populate the form before any fill operations
+    await expect(this.page.locator("input[name='firstName']")).not.toHaveValue(
+      "",
+      { timeout: 15000 },
+    );
   }
 
   async getEmployeeName() {

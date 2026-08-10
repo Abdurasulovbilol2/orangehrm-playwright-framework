@@ -22,15 +22,15 @@ export class LoginPage {
   async login(username: string, password: string) {
     await this.page.locator("input[name='username']").fill(username);
     await this.page.locator("input[name='password']").fill(password);
+    // Start listening for the URL change before clicking to avoid missing the navigation event
     await Promise.all([
-      this.page.waitForLoadState("domcontentloaded"),
+      this.page.waitForURL(/dashboard\/index/, { timeout: 30000 }),
       this.page.locator("button[type='submit']").click(),
     ]);
   }
 
   async loginAndWaitForDashboard(username: string, password: string) {
     await this.login(username, password);
-    await expect(this.page).toHaveURL(/dashboard\/index/, { timeout: 30000 });
     await expect(
       this.page.locator("h6.oxd-topbar-header-breadcrumb-module"),
     ).toContainText("Dashboard", { timeout: 30000 });

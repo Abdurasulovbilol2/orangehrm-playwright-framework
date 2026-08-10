@@ -22,7 +22,6 @@ test("open my info and verify personal details", async ({ page }) => {
 
   await myInfoPage.fillPersonalNameDetails(updatedDetails);
   await myInfoPage.fillEmployeeId(updatedEmployeeId);
-  await myInfoPage.savePersonalDetails();
 
   const employeeName = await myInfoPage.getEmployeeName();
   const employeeId = await myInfoPage.getEmployeeId();
@@ -31,4 +30,6 @@ test("open my info and verify personal details", async ({ page }) => {
   await expect(employeeName.middleName).toBe(updatedDetails.middleName);
   await expect(employeeName.lastName).toBe(updatedDetails.lastName);
   await expect(employeeId).toBe(updatedEmployeeId);
+
+  await myInfoPage.savePersonalDetails();
 });
