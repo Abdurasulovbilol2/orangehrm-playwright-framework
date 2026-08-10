@@ -24,7 +24,7 @@ export class LoginPage {
     await this.page.locator("input[name='password']").fill(password);
     // Start listening for the URL change before clicking to avoid missing the navigation event
     await Promise.all([
-      this.page.waitForURL(/dashboard\/index/, { timeout: 30000 }),
+      this.page.waitForURL(/dashboard\/index/, { timeout: 60000 }),
       this.page.locator("button[type='submit']").click(),
     ]);
   }

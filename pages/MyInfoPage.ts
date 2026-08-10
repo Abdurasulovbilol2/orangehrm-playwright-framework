@@ -59,16 +59,9 @@ export class MyInfoPage {
     middleName: string;
     lastName: string;
   }) {
-    // pressSequentially fires per-keystroke events that Vue's v-model requires
-    for (const [name, value] of [
-      ["firstName", data.firstName],
-      ["middleName", data.middleName],
-      ["lastName", data.lastName],
-    ] as const) {
-      const input = this.page.locator(`input[name='${name}']`);
-      await input.click({ clickCount: 3 });
-      await input.pressSequentially(value);
-    }
+    await this.page.locator("input[name='firstName']").fill(data.firstName);
+    await this.page.locator("input[name='middleName']").fill(data.middleName);
+    await this.page.locator("input[name='lastName']").fill(data.lastName);
   }
 
   async assertPersonalNameDetails(data: {

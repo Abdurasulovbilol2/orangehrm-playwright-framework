@@ -3,8 +3,6 @@ import { LoginPage } from "../pages/LoginPage";
 import { MyInfoPage } from "../pages/MyInfoPage";
 
 test("open my info and verify personal details", async ({ page }) => {
-  test.setTimeout(60000);
-
   const loginPage = new LoginPage(page);
   await loginPage.gotoLoginPage();
   await loginPage.loginAndWaitForDashboard("Admin", "admin123");
