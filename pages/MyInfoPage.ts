@@ -303,6 +303,68 @@ export class MyInfoPage {
     );
   }
 
+  async openEmergencyContacts() {
+    await this.page.getByRole("link", { name: "Emergency Contacts" }).click();
+    await expect(this.page).toHaveURL(
+      /pim\/viewEmergencyContacts\/empNumber\/\d+/,
+      {
+        timeout: 30000,
+      },
+    );
+  }
+
+  async assertEmergencyContactsLoaded() {
+    await expect(
+      this.page.getByRole("heading", { name: "Assigned Emergency Contacts" }),
+    ).toBeVisible({ timeout: 20000 });
+    await expect(this.getEmergencyContactsAddButton()).toBeVisible({
+      timeout: 15000,
+    });
+  }
+
+  async addEmergencyContact(data: {
+    name: string;
+    relationship: string;
+    homeTelephone: string;
+    mobile: string;
+    workTelephone: string;
+  }) {
+    await this.getEmergencyContactsAddButton().click();
+
+    const form = this.page.locator("form").last();
+    await expect(form).toBeVisible({ timeout: 15000 });
+
+    await this.getInputFromForm(form, "Name").fill(data.name);
+    await this.getInputFromForm(form, "Relationship").fill(data.relationship);
+    await this.getInputFromForm(form, "Home Telephone").fill(
+      data.homeTelephone,
+    );
+    await this.getInputFromForm(form, "Mobile").fill(data.mobile);
+    await this.getInputFromForm(form, "Work Telephone").fill(
+      data.workTelephone,
+    );
+
+    await form.getByRole("button", { name: "Save" }).click();
+
+    const successToast = this.page.locator(".oxd-toast").first();
+    await expect(successToast).toContainText(/Successfully/, {
+      timeout: 15000,
+    });
+  }
+
+  async assertEmergencyContactRow(data: {
+    name: string;
+    relationship: string;
+  }) {
+    const row = this.page
+      .locator(".oxd-table-row")
+      .filter({ hasText: data.name })
+      .filter({ hasText: data.relationship })
+      .first();
+
+    await expect(row).toBeVisible({ timeout: 20000 });
+  }
+
   async saveContactDetails() {
     await this.page.getByRole("button", { name: "Save" }).first().click();
 
@@ -368,5 +430,23 @@ export class MyInfoPage {
       .filter({ hasText: label })
       .locator("input")
       .first();
+  }
+
+  private getInputFromForm(form: ReturnType<Page["locator"]>, label: string) {
+    return form
+      .locator("div.oxd-input-group")
+      .filter({ hasText: label })
+      .locator("input")
+      .first();
+  }
+
+  private getEmergencyContactsAddButton() {
+    const emergencyCard = this.page
+      .getByRole("heading", { name: "Assigned Emergency Contacts" })
+      .locator(
+        "xpath=ancestor::div[contains(@class,'orangehrm-card-container')][1]",
+      );
+
+    return emergencyCard.getByRole("button", { name: /Add/ }).first();
   }
 }
