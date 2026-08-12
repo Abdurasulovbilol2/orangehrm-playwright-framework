@@ -213,6 +213,105 @@ export class MyInfoPage {
     ).toBeChecked();
   }
 
+  async openContactDetails() {
+    await this.page.getByRole("link", { name: "Contact Details" }).click();
+    await expect(this.page).toHaveURL(/pim\/contactDetails\/empNumber\/\d+/, {
+      timeout: 30000,
+    });
+  }
+
+  async assertContactDetailsLoaded() {
+    await expect(
+      this.page.getByRole("heading", { name: "Contact Details" }).first(),
+    ).toBeVisible({ timeout: 20000 });
+
+    await expect(this.getWorkTelephoneInput()).toBeVisible({ timeout: 15000 });
+  }
+
+  async fillWorkTelephone(workPhone: string) {
+    const workPhoneInput = this.getWorkTelephoneInput();
+    await expect(workPhoneInput).toBeVisible({ timeout: 15000 });
+    await workPhoneInput.fill(workPhone);
+  }
+
+  async assertWorkTelephone(expected: string) {
+    const workPhoneInput = this.getWorkTelephoneInput();
+    await expect(workPhoneInput).toHaveValue(expected);
+  }
+
+  async fillContactDetailsForm(data: {
+    street1: string;
+    street2: string;
+    city: string;
+    stateProvince: string;
+    zipPostalCode: string;
+    country: string;
+    homePhone: string;
+    mobilePhone: string;
+    workPhone: string;
+    workEmail: string;
+    otherEmail: string;
+  }) {
+    await this.getAddressInput("Street 1").fill(data.street1);
+    await this.getAddressInput("Street 2").fill(data.street2);
+    await this.getAddressInput("City").fill(data.city);
+    await this.getAddressInput("State/Province").fill(data.stateProvince);
+    await this.getAddressInput("Zip/Postal Code").fill(data.zipPostalCode);
+    await this.selectAddressCountry(data.country);
+
+    await this.getTelephoneInput("Home").fill(data.homePhone);
+    await this.getTelephoneInput("Mobile").fill(data.mobilePhone);
+    await this.getWorkTelephoneInput().fill(data.workPhone);
+
+    await this.getEmailInput("Work Email").fill(data.workEmail);
+    await this.getEmailInput("Other Email").fill(data.otherEmail);
+  }
+
+  async assertContactDetailsForm(data: {
+    street1: string;
+    street2: string;
+    city: string;
+    stateProvince: string;
+    zipPostalCode: string;
+    country: string;
+    homePhone: string;
+    mobilePhone: string;
+    workPhone: string;
+    workEmail: string;
+    otherEmail: string;
+  }) {
+    await expect(this.getAddressInput("Street 1")).toHaveValue(data.street1);
+    await expect(this.getAddressInput("Street 2")).toHaveValue(data.street2);
+    await expect(this.getAddressInput("City")).toHaveValue(data.city);
+    await expect(this.getAddressInput("State/Province")).toHaveValue(
+      data.stateProvince,
+    );
+    await expect(this.getAddressInput("Zip/Postal Code")).toHaveValue(
+      data.zipPostalCode,
+    );
+    await expect(this.getAddressCountryDropdown()).toContainText(data.country);
+
+    await expect(this.getTelephoneInput("Home")).toHaveValue(data.homePhone);
+    await expect(this.getTelephoneInput("Mobile")).toHaveValue(
+      data.mobilePhone,
+    );
+    await expect(this.getWorkTelephoneInput()).toHaveValue(data.workPhone);
+
+    await expect(this.getEmailInput("Work Email")).toHaveValue(data.workEmail);
+    await expect(this.getEmailInput("Other Email")).toHaveValue(
+      data.otherEmail,
+    );
+  }
+
+  async saveContactDetails() {
+    await this.page.getByRole("button", { name: "Save" }).first().click();
+
+    const successToast = this.page.locator(".oxd-toast").first();
+    await expect(successToast).toContainText(/Successfully/, {
+      timeout: 15000,
+    });
+  }
+
   async savePersonalDetails() {
     await this.page.getByRole("button", { name: "Save" }).first().click();
 
@@ -220,5 +319,54 @@ export class MyInfoPage {
     await expect(successToast).toContainText(/Successfully/, {
       timeout: 15000,
     });
+  }
+
+  private getWorkTelephoneInput() {
+    return this.getSectionInputByLabel("Telephone", "Work");
+  }
+
+  private getAddressInput(label: string) {
+    return this.getSectionInputByLabel("Address", label);
+  }
+
+  private getTelephoneInput(label: string) {
+    return this.getSectionInputByLabel("Telephone", label);
+  }
+
+  private getEmailInput(label: string) {
+    return this.getSectionInputByLabel("Email", label);
+  }
+
+  private getAddressCountryDropdown() {
+    return this.getSectionContainer("Address")
+      .locator(
+        "div.oxd-input-group:has(label:has-text('Country')) .oxd-select-text",
+      )
+      .first();
+  }
+
+  private async selectAddressCountry(country: string) {
+    const countryDropdown = this.getAddressCountryDropdown();
+    await countryDropdown.click();
+    await this.page.getByRole("option", { name: country }).click();
+  }
+
+  private getSectionContainer(
+    sectionHeading: "Address" | "Telephone" | "Email",
+  ) {
+    return this.page
+      .getByRole("heading", { name: sectionHeading })
+      .locator("xpath=following-sibling::div[1]");
+  }
+
+  private getSectionInputByLabel(
+    sectionHeading: "Address" | "Telephone" | "Email",
+    label: string,
+  ) {
+    return this.getSectionContainer(sectionHeading)
+      .locator("div.oxd-input-group")
+      .filter({ hasText: label })
+      .locator("input")
+      .first();
   }
 }
