@@ -365,6 +365,54 @@ export class MyInfoPage {
     await expect(row).toBeVisible({ timeout: 20000 });
   }
 
+  async openDependents() {
+    await this.page.getByRole("link", { name: "Dependents" }).click();
+    await expect(this.page).toHaveURL(/pim\/viewDependents\/empNumber\/\d+/, {
+      timeout: 30000,
+    });
+  }
+
+  async assertDependentsLoaded() {
+    await expect(
+      this.page.getByRole("heading", { name: "Assigned Dependents" }),
+    ).toBeVisible({ timeout: 20000 });
+    await expect(this.getDependentsAddButton()).toBeVisible({
+      timeout: 15000,
+    });
+  }
+
+  async addDependent(data: {
+    name: string;
+    relationship: "Child" | "Other";
+    dateOfBirth: string;
+  }) {
+    await this.getDependentsAddButton().click();
+
+    const form = this.page.locator("form").last();
+    await expect(form).toBeVisible({ timeout: 15000 });
+
+    await this.getInputFromForm(form, "Name").fill(data.name);
+    await this.selectFromFormDropdown(form, "Relationship", data.relationship);
+    await this.getInputFromForm(form, "Date of Birth").fill(data.dateOfBirth);
+
+    await form.getByRole("button", { name: "Save" }).click();
+
+    const successToast = this.page.locator(".oxd-toast").first();
+    await expect(successToast).toContainText(/Successfully/, {
+      timeout: 15000,
+    });
+  }
+
+  async assertDependentRow(data: { name: string; relationship: string }) {
+    const row = this.page
+      .locator(".oxd-table-row")
+      .filter({ hasText: data.name })
+      .filter({ hasText: data.relationship })
+      .first();
+
+    await expect(row).toBeVisible({ timeout: 20000 });
+  }
+
   async saveContactDetails() {
     await this.page.getByRole("button", { name: "Save" }).first().click();
 
@@ -448,5 +496,30 @@ export class MyInfoPage {
       );
 
     return emergencyCard.getByRole("button", { name: /Add/ }).first();
+  }
+
+  private getDependentsAddButton() {
+    const dependentsCard = this.page
+      .getByRole("heading", { name: "Assigned Dependents" })
+      .locator(
+        "xpath=ancestor::div[contains(@class,'orangehrm-card-container')][1]",
+      );
+
+    return dependentsCard.getByRole("button", { name: /Add/ }).first();
+  }
+
+  private async selectFromFormDropdown(
+    form: ReturnType<Page["locator"]>,
+    label: string,
+    option: string,
+  ) {
+    const dropdown = form
+      .locator("div.oxd-input-group")
+      .filter({ hasText: label })
+      .locator(".oxd-select-text")
+      .first();
+
+    await dropdown.click();
+    await this.page.getByRole("option", { name: option, exact: true }).click();
   }
 }
