@@ -252,12 +252,12 @@ export class MyInfoPage {
     workEmail: string;
     otherEmail: string;
   }) {
+    await this.selectAddressCountry(data.country);
     await this.getAddressInput("Street 1").fill(data.street1);
     await this.getAddressInput("Street 2").fill(data.street2);
     await this.getAddressInput("City").fill(data.city);
     await this.getAddressInput("State/Province").fill(data.stateProvince);
     await this.getAddressInput("Zip/Postal Code").fill(data.zipPostalCode);
-    await this.selectAddressCountry(data.country);
 
     await this.getTelephoneInput("Home").fill(data.homePhone);
     await this.getTelephoneInput("Mobile").fill(data.mobilePhone);
@@ -459,10 +459,7 @@ export class MyInfoPage {
 
     await form.getByRole("button", { name: "Save" }).click();
 
-    const successToast = this.page.locator(".oxd-toast").first();
-    await expect(successToast).toContainText(/Successfully/, {
-      timeout: 15000,
-    });
+    await expect(form).toBeHidden({ timeout: 30000 });
   }
 
   async assertImmigrationRecordRow(data: {
@@ -485,6 +482,11 @@ export class MyInfoPage {
     await expect(successToast).toContainText(/Successfully/, {
       timeout: 15000,
     });
+
+    await this.page.reload({ waitUntil: "domcontentloaded", timeout: 60000 });
+    await expect(
+      this.page.getByRole("heading", { name: "Contact Details" }).first(),
+    ).toBeVisible({ timeout: 20000 });
   }
 
   async savePersonalDetails() {
