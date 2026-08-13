@@ -413,6 +413,71 @@ export class MyInfoPage {
     await expect(row).toBeVisible({ timeout: 20000 });
   }
 
+  async openImmigration() {
+    await this.page.getByRole("link", { name: "Immigration" }).click();
+    await expect(this.page).toHaveURL(/pim\/viewImmigration\/empNumber\/\d+/, {
+      timeout: 30000,
+    });
+  }
+
+  async assertImmigrationLoaded() {
+    await expect(
+      this.page.getByRole("heading", { name: "Assigned Immigration Records" }),
+    ).toBeVisible({ timeout: 20000 });
+    await expect(this.getImmigrationAddButton()).toBeVisible({
+      timeout: 15000,
+    });
+  }
+
+  async addImmigrationRecord(data: {
+    document: "Passport" | "Other";
+    documentNumber: string;
+    issuedDate: string;
+    expiryDate: string;
+    eligibleStatus: string;
+    issuedBy: string;
+    eligibleReviewDate: string;
+    comments: string;
+  }) {
+    await this.getImmigrationAddButton().click();
+
+    const form = this.page.locator("form").last();
+    await expect(form).toBeVisible({ timeout: 15000 });
+
+    await form.getByRole("radio", { name: data.document, exact: true }).check();
+    await this.getInputFromForm(form, "Number").fill(data.documentNumber);
+    await this.getInputFromForm(form, "Issued Date").fill(data.issuedDate);
+    await this.getInputFromForm(form, "Expiry Date").fill(data.expiryDate);
+    await this.getInputFromForm(form, "Eligible Status").fill(
+      data.eligibleStatus,
+    );
+    await this.selectFromFormDropdown(form, "Issued By", data.issuedBy);
+    await this.getInputFromForm(form, "Eligible Review Date").fill(
+      data.eligibleReviewDate,
+    );
+    await this.getTextareaFromForm(form, "Comments").fill(data.comments);
+
+    await form.getByRole("button", { name: "Save" }).click();
+
+    const successToast = this.page.locator(".oxd-toast").first();
+    await expect(successToast).toContainText(/Successfully/, {
+      timeout: 15000,
+    });
+  }
+
+  async assertImmigrationRecordRow(data: {
+    document: string;
+    documentNumber: string;
+  }) {
+    const row = this.page
+      .locator(".oxd-table-row")
+      .filter({ hasText: data.document })
+      .filter({ hasText: data.documentNumber })
+      .first();
+
+    await expect(row).toBeVisible({ timeout: 20000 });
+  }
+
   async saveContactDetails() {
     await this.page.getByRole("button", { name: "Save" }).first().click();
 
@@ -488,6 +553,17 @@ export class MyInfoPage {
       .first();
   }
 
+  private getTextareaFromForm(
+    form: ReturnType<Page["locator"]>,
+    label: string,
+  ) {
+    return form
+      .locator("div.oxd-input-group")
+      .filter({ hasText: label })
+      .locator("textarea")
+      .first();
+  }
+
   private getEmergencyContactsAddButton() {
     const emergencyCard = this.page
       .getByRole("heading", { name: "Assigned Emergency Contacts" })
@@ -506,6 +582,16 @@ export class MyInfoPage {
       );
 
     return dependentsCard.getByRole("button", { name: /Add/ }).first();
+  }
+
+  private getImmigrationAddButton() {
+    const immigrationCard = this.page
+      .getByRole("heading", { name: "Assigned Immigration Records" })
+      .locator(
+        "xpath=ancestor::div[contains(@class,'orangehrm-card-container')][1]",
+      );
+
+    return immigrationCard.getByRole("button", { name: /Add/ }).first();
   }
 
   private async selectFromFormDropdown(
