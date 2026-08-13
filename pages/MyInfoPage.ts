@@ -420,6 +420,53 @@ export class MyInfoPage {
     });
   }
 
+  async openJobDetails() {
+    await this.page.getByRole("link", { name: "Job", exact: true }).click();
+    await expect(this.page).toHaveURL(/pim\/viewJobDetails\/empNumber\/\d+/, {
+      timeout: 30000,
+    });
+  }
+
+  async assertJobDetailsLoaded() {
+    await expect(
+      this.page.getByRole("heading", { name: "Job Details" }),
+    ).toBeVisible({ timeout: 20000 });
+
+    for (const field of [
+      "Joined Date",
+      "Job Title",
+      "Job Specification",
+      "Job Category",
+      "Sub Unit",
+      "Location",
+      "Employment Status",
+    ]) {
+      await expect(this.page.getByText(field, { exact: true })).toBeVisible();
+    }
+
+    await expect(
+      this.page.getByRole("textbox", { name: "yyyy-dd-mm" }).first(),
+    ).toBeDisabled();
+  }
+
+  async openEmploymentContractDetails() {
+    const contractToggle = this.page.locator("span.oxd-switch-input").first();
+    await contractToggle.click();
+    await expect(this.page.getByRole("checkbox").first()).toBeChecked();
+
+    await expect(
+      this.page.getByText("Contract Start Date", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      this.page.getByText("Contract End Date", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      this.page.getByText("Contract Details", { exact: true }),
+    ).toBeVisible();
+    await expect(this.page.getByText("Browse", { exact: true })).toBeVisible();
+    await expect(this.page.locator("input[type='file']")).toBeAttached();
+  }
+
   async assertImmigrationLoaded() {
     await expect(
       this.page.getByRole("heading", { name: "Assigned Immigration Records" }),
