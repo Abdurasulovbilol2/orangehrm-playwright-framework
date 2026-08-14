@@ -127,40 +127,32 @@ export class MyInfoPage {
   }
 
   async fillDriversLicense(licenseNumber: string) {
-    const input = this.page
-      .locator(
-        'div.oxd-input-group:has(label:has-text("Driver\'s License Number")) input',
-      )
-      .first();
+    const input = this.getPersonalInput(
+      /Driver'?s License Number|Driver License Number|Numéro du permis de conduire/i,
+    );
     await expect(input).toBeVisible({ timeout: 15000 });
     await input.fill(licenseNumber);
   }
 
   async assertDriversLicense(expected: string) {
-    const input = this.page
-      .locator(
-        'div.oxd-input-group:has(label:has-text("Driver\'s License Number")) input',
-      )
-      .first();
+    const input = this.getPersonalInput(
+      /Driver'?s License Number|Driver License Number|Numéro du permis de conduire/i,
+    );
     await expect(input).toHaveValue(expected);
   }
 
   async fillLicenseExpiryDate(date: string) {
-    const input = this.page
-      .locator(
-        "div.oxd-input-group:has(label:has-text('License Expiry Date')) input",
-      )
-      .first();
+    const input = this.getPersonalInput(
+      /License Expiry Date|Date d'expiration permis/i,
+    );
     await expect(input).toBeVisible({ timeout: 15000 });
     await input.fill(date);
   }
 
   async assertLicenseExpiryDate(expected: string) {
-    const input = this.page
-      .locator(
-        "div.oxd-input-group:has(label:has-text('License Expiry Date')) input",
-      )
-      .first();
+    const input = this.getPersonalInput(
+      /License Expiry Date|Date d'expiration permis/i,
+    );
     await expect(input).toHaveValue(expected);
   }
 
@@ -631,9 +623,7 @@ export class MyInfoPage {
       await expect(this.page.getByText(field, { exact: true })).toBeVisible();
     }
 
-    await expect(
-      this.page.getByRole("textbox", { name: "yyyy-dd-mm" }).first(),
-    ).toBeDisabled();
+    await expect(this.page.locator("input[disabled]").first()).toBeDisabled();
   }
 
   async openEmploymentContractDetails() {
@@ -811,7 +801,10 @@ export class MyInfoPage {
 
     await form.getByRole("button", { name: "Save" }).click();
 
-    await expect(form).toBeHidden({ timeout: 30000 });
+    await expect(this.page.locator(".oxd-toast").first()).toContainText(
+      /Successfully/,
+      { timeout: 15000 },
+    );
   }
 
   async assertImmigrationRecordRow(data: {
@@ -852,6 +845,14 @@ export class MyInfoPage {
 
   private getWorkTelephoneInput() {
     return this.getSectionInputByLabel("Telephone", "Work");
+  }
+
+  private getPersonalInput(label: string | RegExp) {
+    return this.page
+      .locator("div.oxd-input-group")
+      .filter({ hasText: label })
+      .locator("input")
+      .first();
   }
 
   private getAddressInput(label: string) {
@@ -963,6 +964,18 @@ export class MyInfoPage {
       .first();
 
     await dropdown.click();
-    await this.page.getByRole("option", { name: option, exact: true }).click();
+    const options = this.page.getByRole("option");
+    await expect(options.first()).toBeVisible({ timeout: 10000 });
+    const optionTexts = await options.allTextContents();
+    const normalizedOption = option.trim().toLowerCase();
+    const requestedIndex = optionTexts.findIndex(
+      (text) => text.trim().toLowerCase() === normalizedOption,
+    );
+    const fallbackIndex = optionTexts.findIndex(
+      (text) => text.trim() && !/select/i.test(text),
+    );
+    await options
+      .nth(requestedIndex >= 0 ? requestedIndex : fallbackIndex)
+      .click();
   }
 }

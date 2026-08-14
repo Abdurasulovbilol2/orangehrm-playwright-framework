@@ -19,10 +19,10 @@ test("open my info and verify personal details", async ({ page }) => {
   const updatedEmployeeId = "1234";
   const updatedOtherId = "56789";
   const updatedDriversLicense = "101112";
-  const updatedLicenseExpiry = "2025-31-12";
+  const updatedLicenseExpiry = "31-12-2025";
   const updatedNationality = "Uzbekistan";
   const updatedMaritalStatus = "Single";
-  const updatedDateOfBirth = "2005-24-02";
+  const updatedDateOfBirth = "24-02-2005";
   const updatedGender = "Male" as const;
 
   await myInfoPage.fillPersonalNameDetails(updatedDetails);
