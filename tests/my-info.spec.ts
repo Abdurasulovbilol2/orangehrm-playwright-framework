@@ -47,3 +47,21 @@ test("open my info and verify personal details", async ({ page }) => {
 
   await myInfoPage.savePersonalDetails();
 });
+
+test("open salary, report-to and qualifications pages", async ({ page }) => {
+  const loginPage = new LoginPage(page);
+  await loginPage.gotoLoginPage();
+  await loginPage.loginAndWaitForDashboard("Admin", "admin123");
+
+  const myInfoPage = new MyInfoPage(page);
+  await myInfoPage.openMyInfoPage();
+
+  await myInfoPage.openSalarySection();
+  await myInfoPage.assertSalarySectionLoaded();
+
+  await myInfoPage.openReportToSection();
+  await myInfoPage.assertReportToSectionLoaded();
+
+  await myInfoPage.openQualificationsSection();
+  await myInfoPage.assertQualificationsSectionLoaded();
+});

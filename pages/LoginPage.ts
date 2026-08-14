@@ -33,6 +33,6 @@ export class LoginPage {
     await this.login(username, password);
     await expect(
       this.page.locator("h6.oxd-topbar-header-breadcrumb-module"),
-    ).toContainText("Dashboard", { timeout: 30000 });
+    ).toHaveText(/Dashboard|Tableau de bord/i, { timeout: 30000 });
   }
 }

@@ -7,7 +7,9 @@ export class MyInfoPage {
   constructor(private page: Page) {}
 
   async openMyInfoPage() {
-    const myInfoMenuItem = this.page.getByRole("link", { name: "My Info" });
+    const myInfoMenuItem = this.page.getByRole("link", {
+      name: /My Info|Mes Infos/i,
+    });
     const isMenuVisible = await myInfoMenuItem
       .isVisible({ timeout: 15000 })
       .catch(() => false);
@@ -30,7 +32,11 @@ export class MyInfoPage {
 
   async assertPersonalDetailsLoaded() {
     await expect(
-      this.page.getByRole("heading", { name: "Personal Details" }).first(),
+      this.page
+        .getByRole("heading", {
+          name: /Personal Details|Informations personnelles/i,
+        })
+        .first(),
     ).toBeVisible({ timeout: 20000 });
 
     await expect(this.page.locator("input[name='firstName']")).toBeVisible();
@@ -214,7 +220,9 @@ export class MyInfoPage {
   }
 
   async openContactDetails() {
-    await this.page.getByRole("link", { name: "Contact Details" }).click();
+    await this.page
+      .getByRole("link", { name: /Contact Details|Coordonnées/i })
+      .click();
     await expect(this.page).toHaveURL(/pim\/contactDetails\/empNumber\/\d+/, {
       timeout: 30000,
     });
@@ -421,15 +429,70 @@ export class MyInfoPage {
   }
 
   async openJobDetails() {
-    await this.page.getByRole("link", { name: "Job", exact: true }).click();
+    await this.page.getByRole("link", { name: /Job|Emploi/i }).click();
     await expect(this.page).toHaveURL(/pim\/viewJobDetails\/empNumber\/\d+/, {
       timeout: 30000,
     });
   }
 
+  async openSalarySection() {
+    await this.page.getByRole("link", { name: /Salary|Salaire/i }).click();
+    await expect(this.page).toHaveURL(/pim\/viewSalaryList\/empNumber\/\d+/, {
+      timeout: 30000,
+    });
+  }
+
+  async assertSalarySectionLoaded() {
+    await expect(
+      this.page.getByRole("heading", { name: /Salary|Salaire/i }).first(),
+    ).toBeVisible({ timeout: 20000 });
+  }
+
+  async openReportToSection() {
+    await this.page
+      .getByRole("link", { name: /Report-to|Reporter à/i })
+      .click();
+    await expect(this.page).toHaveURL(
+      /pim\/viewReportToDetails\/empNumber\/\d+/,
+      {
+        timeout: 30000,
+      },
+    );
+  }
+
+  async assertReportToSectionLoaded() {
+    await expect(
+      this.page.getByRole("heading", { name: /Report-to|Reporter à/i }).first(),
+    ).toBeVisible({ timeout: 20000 });
+  }
+
+  async openQualificationsSection() {
+    await this.page
+      .getByRole("link", { name: /Qualifications|Diplômes|Diplome|Diplôme/i })
+      .click();
+    await expect(this.page).toHaveURL(
+      /pim\/viewQualificationsDetails\/empNumber\/\d+/,
+      {
+        timeout: 30000,
+      },
+    );
+  }
+
+  async assertQualificationsSectionLoaded() {
+    await expect(
+      this.page
+        .getByRole("heading", {
+          name: /Qualifications|Diplômes|Diplome|Diplôme/i,
+        })
+        .first(),
+    ).toBeVisible({ timeout: 20000 });
+  }
+
   async assertJobDetailsLoaded() {
     await expect(
-      this.page.getByRole("heading", { name: "Job Details" }),
+      this.page.getByRole("heading", {
+        name: /Job Details|Détails du poste|Emploi/i,
+      }),
     ).toBeVisible({ timeout: 20000 });
 
     for (const field of [
@@ -465,6 +528,124 @@ export class MyInfoPage {
     ).toBeVisible();
     await expect(this.page.getByText("Browse", { exact: true })).toBeVisible();
     await expect(this.page.locator("input[type='file']")).toBeAttached();
+  }
+
+  async addSalaryRecord(data: {
+    salaryComponent: string;
+    amount: string;
+    currency: string;
+    payFrequency: string;
+    comment: string;
+  }) {
+    const salaryCard = this.page
+      .getByRole("heading", { name: /Salary|Salaire/i })
+      .locator(
+        "xpath=ancestor::div[contains(@class,'orangehrm-card-container')][1]",
+      );
+
+    const addButton = salaryCard
+      .getByRole("button", { name: /Add|Ajouter/i })
+      .first();
+    await addButton.click();
+
+    const form = this.page.locator("form").last();
+    await expect(form).toBeVisible({ timeout: 15000 });
+
+    await this.getInputFromForm(
+      form,
+      /Salary Component|Composant de salaire/i,
+    ).fill(data.salaryComponent);
+    await this.selectFromFormDropdown(form, /Currency|Devise/i, data.currency);
+    await this.getInputFromForm(form, /Amount|Montant/i).fill(data.amount);
+    await this.selectFromFormDropdown(
+      form,
+      /Pay Frequency|Fréquence de paie|Fréquence de paiement/i,
+      data.payFrequency,
+    );
+    await this.getTextareaFromForm(form, /Comment|Commentaire/i).fill(
+      data.comment,
+    );
+
+    await form.getByRole("button", { name: /Save|Enregistrer/i }).click();
+    await expect(this.page.locator(".oxd-toast").first()).toContainText(
+      /Successfully|Enregistré|Enregistrer/i,
+      {
+        timeout: 15000,
+      },
+    );
+  }
+
+  async addReportToRecord(data: { name: string; reportingMethod: string }) {
+    const reportCard = this.page
+      .getByRole("heading", { name: /Report-to|Reporter à/i })
+      .locator(
+        "xpath=ancestor::div[contains(@class,'orangehrm-card-container')][1]",
+      );
+
+    await reportCard.getByRole("button", { name: /Add|Ajouter/i }).click();
+    const form = this.page.locator("form").last();
+    await expect(form).toBeVisible({ timeout: 15000 });
+
+    await this.getInputFromForm(form, /Name|Nom/i).fill(data.name);
+    await this.selectFromFormDropdown(
+      form,
+      /Reporting Method|Méthode de rapport|Méthode de reporting|Méthode de déclaration/i,
+      data.reportingMethod,
+    );
+
+    await form.getByRole("button", { name: /Save|Enregistrer/i }).click();
+    await expect(this.page.locator(".oxd-toast").first()).toContainText(
+      /Successfully|Enregistré|Enregistrer/i,
+      {
+        timeout: 15000,
+      },
+    );
+  }
+
+  async addQualificationEducation(data: {
+    school: string;
+    degree: string;
+    startDate: string;
+    endDate: string;
+    notes: string;
+  }) {
+    const qualificationsCard = this.page
+      .getByRole("heading", { name: /Qualifications|Diplômes/i })
+      .locator(
+        "xpath=ancestor::div[contains(@class,'orangehrm-card-container')][1]",
+      );
+
+    await qualificationsCard
+      .getByRole("button", { name: /Add|Ajouter/i })
+      .click();
+    const form = this.page.locator("form").last();
+    await expect(form).toBeVisible({ timeout: 15000 });
+
+    await this.getInputFromForm(form, /School|École|Institut|Collège/i).fill(
+      data.school,
+    );
+    await this.getInputFromForm(form, /Degree|Diplôme|Degré/i).fill(
+      data.degree,
+    );
+    await this.getInputFromForm(
+      form,
+      /From Date|Date de début|Start Date|Date de début/i,
+    ).fill(data.startDate);
+    await this.getInputFromForm(
+      form,
+      /To Date|Date de fin|End Date|Date de fin/i,
+    ).fill(data.endDate);
+    await this.getTextareaFromForm(form, /Notes|Commentaires|Remarques/i).fill(
+      data.notes,
+    );
+
+    await form.getByRole("button", { name: /Save|Enregistrer/i }).click();
+    await expect(this.page.locator(".oxd-toast").first()).toContainText(
+      /Successfully|Enregistré|Enregistrer/i,
+      {
+        timeout: 15000,
+      },
+    );
   }
 
   async assertImmigrationLoaded() {
@@ -594,7 +775,10 @@ export class MyInfoPage {
       .first();
   }
 
-  private getInputFromForm(form: ReturnType<Page["locator"]>, label: string) {
+  private getInputFromForm(
+    form: ReturnType<Page["locator"]>,
+    label: string | RegExp,
+  ) {
     return form
       .locator("div.oxd-input-group")
       .filter({ hasText: label })
@@ -604,7 +788,7 @@ export class MyInfoPage {
 
   private getTextareaFromForm(
     form: ReturnType<Page["locator"]>,
-    label: string,
+    label: string | RegExp,
   ) {
     return form
       .locator("div.oxd-input-group")
@@ -645,7 +829,7 @@ export class MyInfoPage {
 
   private async selectFromFormDropdown(
     form: ReturnType<Page["locator"]>,
-    label: string,
+    label: string | RegExp,
     option: string,
   ) {
     const dropdown = form
