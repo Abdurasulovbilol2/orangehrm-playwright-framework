@@ -16,34 +16,63 @@ const { chromium } = require("playwright");
     await page.waitForURL(/viewPersonalDetails/, { timeout: 30000 });
     await page.waitForTimeout(3000);
 
-    const sections = [
-      { name: "Salary", pattern: /Salary|Salaire/i },
-      { name: "Report-to", pattern: /Report-to|Reporter à/i },
-      {
-        name: "Qualifications",
-        pattern: /Qualifications|Diplômes|Diplome|Diplôme/i,
-      },
-    ];
+    const link = page
+      .getByRole("link", { name: /Qualifications|Diplômes|Diplôme/i })
+      .first();
+    console.log("QUAL_VISIBLE", await link.isVisible().catch(() => false));
+    await link.click();
+    await page.waitForURL(/viewQualifications/, { timeout: 30000 });
+    await page.waitForTimeout(2000);
+    console.log("URL_AFTER_CLICK", page.url());
 
-    for (const section of sections) {
-      const link = page.getByRole("link", { name: section.pattern }).first();
-      const visible = await link.isVisible().catch(() => false);
-      console.log("SECTION", section.name, "VISIBLE", visible);
-      if (visible) {
-        await link.click();
-        await page.waitForTimeout(2000);
-        console.log("AFTER CLICK URL", page.url());
-        console.log(
-          "AFTER CLICK BODY",
-          (await page.locator("body").innerText()).slice(0, 1500),
-        );
-      }
+    const section = page
+      .getByRole("heading", { name: /Work Experience/i })
+      .locator(
+        "xpath=ancestor::div[contains(@class,'orangehrm-card-container')][1]",
+      );
+    const addButton = section.getByRole("button", { name: /Add/i }).first();
+    console.log("ADD_VISIBLE", await addButton.isVisible().catch(() => false));
+    await addButton.click();
+    await page.waitForTimeout(2000);
+
+    const form = page.locator("form").last();
+    console.log("FORM_VISIBLE", await form.isVisible().catch(() => false));
+    console.log("FORM_COUNT", await page.locator("form").count());
+    console.log("FORM_TEXT", (await form.innerText()).slice(0, 4000));
+    console.log(
+      "LABELS",
+      JSON.stringify(
+        (await page.locator("label").allTextContents()).slice(0, 200),
+      ),
+    );
+    for (const name of [
+      "Work Experience",
+      "Education",
+      "Skills",
+      "Languages",
+      "License",
+    ]) {
+      const heading = page.getByRole("heading", { name, exact: true }).first();
+      console.log(
+        "SECTION_INFO",
+        name,
+        await heading
+          .evaluate((element) => {
+            const parent = element.parentElement;
+            const card = element.closest("div.orangehrm-card-container");
+            return {
+              tag: element.tagName,
+              parentClass: parent?.className,
+              cardClass: card?.className,
+              cardText: card?.textContent?.slice(0, 120),
+            };
+          })
+          .catch(() => null),
+      );
     }
-
-    const bodyText = await page.locator("body").innerText();
-    console.log("---BODY START---");
-    console.log(bodyText.slice(0, 2500));
-    console.log("---BODY END---");
+    console.log("BODY_START");
+    console.log((await page.locator("body").innerText()).slice(0, 5000));
+    console.log("BODY_END");
   } finally {
     await browser.close();
   }

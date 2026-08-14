@@ -48,20 +48,46 @@ test("open my info and verify personal details", async ({ page }) => {
   await myInfoPage.savePersonalDetails();
 });
 
-test("open salary, report-to and qualifications pages", async ({ page }) => {
+test("fill all qualification forms", async ({ page }) => {
   const loginPage = new LoginPage(page);
   await loginPage.gotoLoginPage();
   await loginPage.loginAndWaitForDashboard("Admin", "admin123");
 
   const myInfoPage = new MyInfoPage(page);
   await myInfoPage.openMyInfoPage();
-
-  await myInfoPage.openSalarySection();
-  await myInfoPage.assertSalarySectionLoaded();
-
-  await myInfoPage.openReportToSection();
-  await myInfoPage.assertReportToSectionLoaded();
-
   await myInfoPage.openQualificationsSection();
-  await myInfoPage.assertQualificationsSectionLoaded();
+
+  await myInfoPage.fillQualificationWorkExperience({
+    company: "TCS",
+    jobTitle: "Tester",
+    fromDate: "2020-09-02",
+    toDate: "2023-07-16",
+    comment: "Automation qualification work experience",
+  });
+
+  await myInfoPage.fillQualificationEducation({
+    level: "College Undergraduate",
+    institute: "Oxford University",
+    major: "Computer Science",
+    gpaScore: "3.8",
+    endDate: "31-12-2023",
+  });
+
+  await myInfoPage.fillQualificationSkill({
+    skill: "Content Creation",
+    yearsOfExperience: "3",
+  });
+
+  await myInfoPage.fillQualificationLanguage({
+    language: "english",
+    fluency: "Writing",
+    competency: "Good",
+    comments: "Automation language entry",
+  });
+
+  await myInfoPage.fillQualificationLicense({
+    licenseType: "Certified Digital Marketing Professional (CDMP)",
+    licenseNumber: "CDMP-2021-001",
+    expiryDate: "01-05-2031",
+  });
 });

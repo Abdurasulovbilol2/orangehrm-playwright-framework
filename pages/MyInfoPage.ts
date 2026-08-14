@@ -339,7 +339,7 @@ export class MyInfoPage {
   }) {
     await this.getEmergencyContactsAddButton().click();
 
-    const form = this.page.locator("form").last();
+    const form = this.page.locator("form:visible").last();
     await expect(form).toBeVisible({ timeout: 15000 });
 
     await this.getInputFromForm(form, "Name").fill(data.name);
@@ -396,7 +396,7 @@ export class MyInfoPage {
   }) {
     await this.getDependentsAddButton().click();
 
-    const form = this.page.locator("form").last();
+    const form = this.page.locator("form:visible").last();
     await expect(form).toBeVisible({ timeout: 15000 });
 
     await this.getInputFromForm(form, "Name").fill(data.name);
@@ -442,12 +442,6 @@ export class MyInfoPage {
     });
   }
 
-  async assertSalarySectionLoaded() {
-    await expect(
-      this.page.getByRole("heading", { name: /Salary|Salaire/i }).first(),
-    ).toBeVisible({ timeout: 20000 });
-  }
-
   async openReportToSection() {
     await this.page
       .getByRole("link", { name: /Report-to|Reporter à/i })
@@ -460,32 +454,162 @@ export class MyInfoPage {
     );
   }
 
-  async assertReportToSectionLoaded() {
-    await expect(
-      this.page.getByRole("heading", { name: /Report-to|Reporter à/i }).first(),
-    ).toBeVisible({ timeout: 20000 });
-  }
-
   async openQualificationsSection() {
     await this.page
       .getByRole("link", { name: /Qualifications|Diplômes|Diplome|Diplôme/i })
       .click();
     await expect(this.page).toHaveURL(
-      /pim\/viewQualificationsDetails\/empNumber\/\d+/,
+      /pim\/viewQualifications\/empNumber\/\d+/,
       {
         timeout: 30000,
       },
     );
   }
 
-  async assertQualificationsSectionLoaded() {
-    await expect(
-      this.page
-        .getByRole("heading", {
-          name: /Qualifications|Diplômes|Diplome|Diplôme/i,
-        })
-        .first(),
-    ).toBeVisible({ timeout: 20000 });
+  async fillQualificationWorkExperience(data: {
+    company: string;
+    jobTitle: string;
+    fromDate: string;
+    toDate: string;
+    comment: string;
+  }) {
+    const section = this.page
+      .getByRole("heading", { name: /Work Experience/i })
+      .locator("xpath=..");
+
+    await section.getByRole("button", { name: /Add/i }).click();
+    const form = this.page.locator("form:visible").last();
+    await expect(form).toBeVisible({ timeout: 15000 });
+
+    await this.getInputFromForm(form, /Company/i).fill(data.company);
+    await this.getInputFromForm(form, /Job Title/i).fill(data.jobTitle);
+    await this.getInputFromForm(form, /From/i).fill(data.fromDate);
+    await this.getInputFromForm(form, /To/i).fill(data.toDate);
+    await this.getTextareaFromForm(form, /Comment/i).fill(data.comment);
+
+    await form.getByRole("button", { name: /Save/i }).click();
+    await expect(this.page.locator(".oxd-toast").first()).toContainText(
+      /Successfully/,
+      {
+        timeout: 15000,
+      },
+    );
+  }
+
+  async fillQualificationEducation(data: {
+    level: string;
+    institute: string;
+    major: string;
+    gpaScore: string;
+    endDate: string;
+  }) {
+    const section = this.page
+      .getByRole("heading", { name: /Education/i })
+      .locator("xpath=..");
+
+    await section.getByRole("button", { name: /Add/i }).click();
+    const form = this.page.locator("form:visible").last();
+    await expect(form).toBeVisible({ timeout: 15000 });
+
+    await this.selectFromFormDropdown(form, /Level/i, data.level);
+    await this.getInputFromForm(form, /Institute/i).fill(data.institute);
+    await this.getInputFromForm(form, /Major\/Specialization/i).fill(
+      data.major,
+    );
+    await this.getInputFromForm(form, /GPA\/Score|GPA\/Score/i).fill(
+      data.gpaScore,
+    );
+    await this.getInputFromForm(form, /End Date/i).fill(data.endDate);
+
+    await form.getByRole("button", { name: /Save/i }).click();
+    await expect(this.page.locator(".oxd-toast").first()).toContainText(
+      /Successfully/,
+      {
+        timeout: 15000,
+      },
+    );
+  }
+
+  async fillQualificationSkill(data: {
+    skill: string;
+    yearsOfExperience: string;
+  }) {
+    const section = this.page
+      .getByRole("heading", { name: /Skills/i })
+      .locator("xpath=..");
+
+    await section.getByRole("button", { name: /Add/i }).click();
+    const form = this.page.locator("form:visible").last();
+    await expect(form).toBeVisible({ timeout: 15000 });
+
+    await this.selectFromFormDropdown(form, /Skill/i, data.skill);
+    await this.getInputFromForm(form, /Years of Experience/i).fill(
+      data.yearsOfExperience,
+    );
+
+    await form.getByRole("button", { name: /Save/i }).click();
+    await expect(this.page.locator(".oxd-toast").first()).toContainText(
+      /Successfully/,
+      {
+        timeout: 15000,
+      },
+    );
+  }
+
+  async fillQualificationLanguage(data: {
+    language: string;
+    fluency: string;
+    competency: string;
+    comments: string;
+  }) {
+    const section = this.page
+      .getByRole("heading", { name: /Languages/i })
+      .locator("xpath=..");
+
+    await section.getByRole("button", { name: /Add/i }).click();
+    const form = this.page.locator("form:visible").last();
+    await expect(form).toBeVisible({ timeout: 15000 });
+
+    await this.selectFromFormDropdown(form, /Language/i, data.language);
+    await this.selectFromFormDropdown(form, /Fluency/i, data.fluency);
+    await this.selectFromFormDropdown(form, /Competency/i, data.competency);
+    await this.getTextareaFromForm(form, /Comments/i).fill(data.comments);
+
+    await form.getByRole("button", { name: /Save/i }).click();
+    await expect(this.page.locator(".oxd-toast").first()).toContainText(
+      /Successfully/,
+      {
+        timeout: 15000,
+      },
+    );
+  }
+
+  async fillQualificationLicense(data: {
+    licenseType: string;
+    licenseNumber: string;
+    expiryDate: string;
+  }) {
+    const section = this.page
+      .getByRole("heading", { name: /License/i })
+      .locator("xpath=..");
+
+    await section.getByRole("button", { name: /Add/i }).click();
+    const form = this.page.locator("form:visible").last();
+    await expect(form).toBeVisible({ timeout: 15000 });
+
+    await this.selectFromFormDropdown(form, /License Type/i, data.licenseType);
+    await this.getInputFromForm(form, /License Number/i).fill(
+      data.licenseNumber,
+    );
+    await this.getInputFromForm(form, /Expiry Date/i).fill(data.expiryDate);
+
+    await form.getByRole("button", { name: /Save/i }).click();
+    await expect(this.page.locator(".oxd-toast").first()).toContainText(
+      /Successfully/,
+      {
+        timeout: 15000,
+      },
+    );
   }
 
   async assertJobDetailsLoaded() {
