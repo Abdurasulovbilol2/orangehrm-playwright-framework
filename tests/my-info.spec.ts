@@ -135,6 +135,8 @@ test("open report-to page", async ({ page }) => {
   await myInfoPage.openMyInfoPage();
   await myInfoPage.openReportToSection();
   await expect(
-    page.getByRole("heading", { name: /Report-to|Reporter à/i }).first(),
+    page
+      .getByRole("heading", { name: /Report to|Assigned Supervisors/i })
+      .first(),
   ).toBeVisible();
 });
