@@ -80,6 +80,22 @@ export class MyInfoPage {
     );
   }
 
+  async assertPersonalNameDetails(data: {
+    firstName: string;
+    middleName: string;
+    lastName: string;
+  }) {
+    await expect(this.page.locator("input[name='firstName']")).toHaveValue(
+      data.firstName,
+    );
+    await expect(this.page.locator("input[name='middleName']")).toHaveValue(
+      data.middleName,
+    );
+    await expect(this.page.locator("input[name='lastName']")).toHaveValue(
+      data.lastName,
+    );
+  }
+
   async fillEmployeeId(employeeId: string) {
     const employeeIdInput = this.page
       .locator("div.oxd-input-group:has(label:has-text('Employee Id')) input")

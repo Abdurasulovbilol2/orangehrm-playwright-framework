@@ -112,3 +112,29 @@ test("fill and save a membership form", async ({ page }) => {
     renewalDate: "2026-01-01",
   });
 });
+
+test("open salary page", async ({ page }) => {
+  const loginPage = new LoginPage(page);
+  await loginPage.gotoLoginPage();
+  await loginPage.loginAndWaitForDashboard("Admin", "admin123");
+
+  const myInfoPage = new MyInfoPage(page);
+  await myInfoPage.openMyInfoPage();
+  await myInfoPage.openSalarySection();
+  await expect(
+    page.getByRole("heading", { name: /Salary|Salaire/i }).first(),
+  ).toBeVisible();
+});
+
+test("open report-to page", async ({ page }) => {
+  const loginPage = new LoginPage(page);
+  await loginPage.gotoLoginPage();
+  await loginPage.loginAndWaitForDashboard("Admin", "admin123");
+
+  const myInfoPage = new MyInfoPage(page);
+  await myInfoPage.openMyInfoPage();
+  await myInfoPage.openReportToSection();
+  await expect(
+    page.getByRole("heading", { name: /Report-to|Reporter à/i }).first(),
+  ).toBeVisible();
+});
