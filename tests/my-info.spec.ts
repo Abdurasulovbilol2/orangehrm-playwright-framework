@@ -16,13 +16,13 @@ test("open my info and verify personal details", async ({ page }) => {
     middleName: "Abdurasul",
     lastName: "Abdurasul",
   };
-  const updatedEmployeeId = "1234";
+  const updatedEmployeeId = String(Date.now()).slice(-6);
   const updatedOtherId = "56789";
   const updatedDriversLicense = "101112";
-  const updatedLicenseExpiry = "31-12-2025";
+  const updatedLicenseExpiry = "2025-31-12";
   const updatedNationality = "Uzbekistan";
   const updatedMaritalStatus = "Single";
-  const updatedDateOfBirth = "24-02-2005";
+  const updatedDateOfBirth = "2005-24-02";
   const updatedGender = "Male" as const;
 
   await myInfoPage.fillPersonalNameDetails(updatedDetails);
@@ -70,7 +70,8 @@ test("fill all qualification forms", async ({ page }) => {
     institute: "Oxford University",
     major: "Computer Science",
     gpaScore: "3.8",
-    endDate: "31-12-2023",
+    endDate: "2023-31-12",
+    year: "2023",
   });
 
   await myInfoPage.fillQualificationSkill({
@@ -88,6 +89,26 @@ test("fill all qualification forms", async ({ page }) => {
   await myInfoPage.fillQualificationLicense({
     licenseType: "Certified Digital Marketing Professional (CDMP)",
     licenseNumber: "CDMP-2021-001",
-    expiryDate: "01-05-2031",
+    issuedDate: "2021-01-05",
+    expiryDate: "2031-01-05",
+  });
+});
+
+test("fill and save a membership form", async ({ page }) => {
+  const loginPage = new LoginPage(page);
+  await loginPage.gotoLoginPage();
+  await loginPage.loginAndWaitForDashboard("Admin", "admin123");
+
+  const myInfoPage = new MyInfoPage(page);
+  await myInfoPage.openMyInfoPage();
+  await myInfoPage.openMembershipsSection();
+
+  await myInfoPage.fillMembership({
+    membership: "Gym Membership",
+    paidBy: "Company",
+    amount: "100",
+    currency: "USD",
+    commencementDate: "2025-01-01",
+    renewalDate: "2026-01-01",
   });
 });

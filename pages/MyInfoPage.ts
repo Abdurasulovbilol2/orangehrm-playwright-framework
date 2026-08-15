@@ -68,13 +68,7 @@ export class MyInfoPage {
     await this.page.locator("input[name='firstName']").fill(data.firstName);
     await this.page.locator("input[name='middleName']").fill(data.middleName);
     await this.page.locator("input[name='lastName']").fill(data.lastName);
-  }
 
-  async assertPersonalNameDetails(data: {
-    firstName: string;
-    middleName: string;
-    lastName: string;
-  }) {
     await expect(this.page.locator("input[name='firstName']")).toHaveValue(
       data.firstName,
     );
@@ -458,6 +452,64 @@ export class MyInfoPage {
     );
   }
 
+  async openMembershipsSection() {
+    await this.page
+      .getByRole("link", { name: /Memberships|Adhésions/i })
+      .click();
+    await expect(this.page).toHaveURL(/pim\/viewMemberships\/empNumber\/\d+/, {
+      timeout: 30000,
+    });
+  }
+
+  async fillMembership(data: {
+    membership: string;
+    paidBy: string;
+    amount: string;
+    currency: string;
+    commencementDate: string;
+    renewalDate: string;
+  }) {
+    const membershipsCard = this.page
+      .getByRole("heading", {
+        name: /Assigned Memberships|Adhésions attribuées/i,
+      })
+      .locator("xpath=..");
+
+    await membershipsCard.getByRole("button", { name: /Add|Ajouter/i }).click();
+    const form = this.page.locator("form:visible").last();
+    await expect(form).toBeVisible({ timeout: 15000 });
+
+    await this.selectFromFormDropdown(
+      form,
+      /Membership|Adhésion/i,
+      data.membership,
+    );
+    await this.selectFromFormDropdown(
+      form,
+      /Subscription Paid By|Abonnement payé par/i,
+      data.paidBy,
+    );
+    await this.getInputFromForm(
+      form,
+      /Subscription Amount|Montant de l'abonnement/i,
+    ).fill(data.amount);
+    await this.selectFromFormDropdown(form, /Currency|Devise/i, data.currency);
+    await this.getInputFromForm(
+      form,
+      /Subscription Commence Date|Date de début de l'abonnement/i,
+    ).fill(data.commencementDate);
+    await this.getInputFromForm(
+      form,
+      /Subscription Renewal Date|Date de renouvellement de l'abonnement/i,
+    ).fill(data.renewalDate);
+
+    await form.getByRole("button", { name: /Save|Enregistrer/i }).click();
+    await expect(this.page.locator(".oxd-toast").first()).toContainText(
+      /Successfully|Enregistré|Enregistrer/i,
+      { timeout: 15000 },
+    );
+  }
+
   async fillQualificationWorkExperience(data: {
     company: string;
     jobTitle: string;
@@ -492,6 +544,7 @@ export class MyInfoPage {
     level: string;
     institute: string;
     major: string;
+    year: string;
     gpaScore: string;
     endDate: string;
   }) {
@@ -511,6 +564,7 @@ export class MyInfoPage {
     await this.getInputFromForm(form, /GPA\/Score|GPA\/Score/i).fill(
       data.gpaScore,
     );
+    await this.getInputFromForm(form, /Year/i).fill(data.year);
     await this.getInputFromForm(form, /End Date/i).fill(data.endDate);
 
     await form.getByRole("button", { name: /Save/i }).click();
@@ -568,17 +622,18 @@ export class MyInfoPage {
     await this.getTextareaFromForm(form, /Comments/i).fill(data.comments);
 
     await form.getByRole("button", { name: /Save/i }).click();
-    await expect(this.page.locator(".oxd-toast").first()).toContainText(
-      /Successfully/,
-      {
-        timeout: 15000,
-      },
-    );
+    const savedRow = this.page
+      .locator(".oxd-table-row")
+      .filter({ hasText: data.language })
+      .filter({ hasText: data.comments })
+      .first();
+    await expect(savedRow).toBeVisible({ timeout: 30000 });
   }
 
   async fillQualificationLicense(data: {
     licenseType: string;
     licenseNumber: string;
+    issuedDate: string;
     expiryDate: string;
   }) {
     const section = this.page
@@ -593,15 +648,15 @@ export class MyInfoPage {
     await this.getInputFromForm(form, /License Number/i).fill(
       data.licenseNumber,
     );
+    await this.getInputFromForm(form, /Issued Date/i).fill(data.issuedDate);
     await this.getInputFromForm(form, /Expiry Date/i).fill(data.expiryDate);
 
     await form.getByRole("button", { name: /Save/i }).click();
-    await expect(this.page.locator(".oxd-toast").first()).toContainText(
-      /Successfully/,
-      {
-        timeout: 15000,
-      },
-    );
+    const savedRow = this.page
+      .locator(".oxd-table-row")
+      .filter({ hasText: data.licenseType })
+      .first();
+    await expect(savedRow).toBeVisible({ timeout: 30000 });
   }
 
   async assertJobDetailsLoaded() {

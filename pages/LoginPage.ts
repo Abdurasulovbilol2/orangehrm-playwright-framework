@@ -7,16 +7,40 @@ export class LoginPage {
   constructor(private page: Page) {}
 
   async gotoLoginPage() {
-    await this.page.goto(this.loginUrl, {
-      waitUntil: "domcontentloaded",
-      timeout: 60000,
-    });
-    await expect(this.page.locator("input[name='username']")).toBeVisible({
-      timeout: 20000,
-    });
-    await expect(this.page.locator("input[name='password']")).toBeVisible({
-      timeout: 20000,
-    });
+    const usernameInput = this.page.locator("input[name='username']");
+    const passwordInput = this.page.locator("input[name='password']");
+
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        await this.page.goto(this.loginUrl, {
+          waitUntil: "domcontentloaded",
+          timeout: 60000,
+        });
+      } catch (error) {
+        if (attempt === 3) {
+          throw error;
+        }
+
+        await this.page.waitForTimeout(1000 * attempt);
+        continue;
+      }
+
+      if (
+        (await usernameInput
+          .isVisible({ timeout: 10000 })
+          .catch(() => false)) &&
+        (await passwordInput.isVisible({ timeout: 10000 }).catch(() => false))
+      ) {
+        return;
+      }
+
+      if (attempt < 3) {
+        await this.page.waitForTimeout(1000 * attempt);
+      }
+    }
+
+    await expect(usernameInput).toBeVisible({ timeout: 1000 });
+    await expect(passwordInput).toBeVisible({ timeout: 1000 });
   }
 
   async login(username: string, password: string) {

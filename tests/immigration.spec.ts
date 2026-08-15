@@ -16,11 +16,11 @@ test("add immigration record with all fields", async ({ page }) => {
   const immigrationRecord = {
     document: "Passport" as const,
     documentNumber: `P${testRunId}`,
-    issuedDate: "15-01-2024",
-    expiryDate: "15-01-2034",
+    issuedDate: "2024-15-01",
+    expiryDate: "2034-15-01",
     eligibleStatus: "Eligible",
     issuedBy: "Uzbekistan",
-    eligibleReviewDate: "15-01-2025",
+    eligibleReviewDate: "2025-15-01",
     comments: "Automated immigration record test",
   };
 
