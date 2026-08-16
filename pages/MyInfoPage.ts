@@ -660,7 +660,7 @@ export class MyInfoPage {
     const form = this.page.locator("form:visible").last();
     await expect(form).toBeVisible({ timeout: 15000 });
 
-    await this.selectFromFormDropdown(form, /License Type/i, data.licenseType);
+    const selectedLicenseType = await this.selectFromFormDropdown(form, /License Type/i, data.licenseType);
     await this.getInputFromForm(form, /License Number/i).fill(
       data.licenseNumber,
     );
@@ -670,7 +670,7 @@ export class MyInfoPage {
     await form.getByRole("button", { name: /Save/i }).click();
     const savedRow = this.page
       .locator(".oxd-table-row")
-      .filter({ hasText: data.licenseType })
+      .filter({ hasText: selectedLicenseType })
       .first();
     await expect(savedRow).toBeVisible({ timeout: 30000 });
   }
@@ -1027,7 +1027,7 @@ export class MyInfoPage {
     form: ReturnType<Page["locator"]>,
     label: string | RegExp,
     option: string,
-  ) {
+  ): Promise<string> {
     const dropdown = form
       .locator("div.oxd-input-group")
       .filter({ hasText: label })
@@ -1045,8 +1045,8 @@ export class MyInfoPage {
     const fallbackIndex = optionTexts.findIndex(
       (text) => text.trim() && !/select/i.test(text),
     );
-    await options
-      .nth(requestedIndex >= 0 ? requestedIndex : fallbackIndex)
-      .click();
+    const selectedIndex = requestedIndex >= 0 ? requestedIndex : fallbackIndex;
+    await options.nth(selectedIndex).click();
+    return optionTexts[selectedIndex].trim();
   }
 }
