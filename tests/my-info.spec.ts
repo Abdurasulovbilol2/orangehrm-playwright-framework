@@ -57,17 +57,19 @@ test("fill all qualification forms", async ({ page }) => {
   await myInfoPage.openMyInfoPage();
   await myInfoPage.openQualificationsSection();
 
+  const runId = Date.now();
+
   await myInfoPage.fillQualificationWorkExperience({
-    company: "TCS",
+    company: `TCS-${runId}`,
     jobTitle: "Tester",
     fromDate: "2020-09-02",
     toDate: "2023-07-16",
-    comment: "Automation qualification work experience",
+    comment: `Automation qualification work experience ${runId}`,
   });
 
   await myInfoPage.fillQualificationEducation({
     level: "College Undergraduate",
-    institute: "Oxford University",
+    institute: `Oxford University ${runId}`,
     major: "Computer Science",
     gpaScore: "3.8",
     endDate: "2023-31-12",
@@ -80,15 +82,15 @@ test("fill all qualification forms", async ({ page }) => {
   });
 
   await myInfoPage.fillQualificationLanguage({
-    language: "english",
+    language: "french",
     fluency: "Writing",
     competency: "Good",
-    comments: "Automation language entry",
+    comments: `Automation language entry ${runId}`,
   });
 
   await myInfoPage.fillQualificationLicense({
     licenseType: "Certified Digital Marketing Professional (CDMP)",
-    licenseNumber: "CDMP-2021-001",
+    licenseNumber: `CDMP-${runId}`,
     issuedDate: "2021-01-05",
     expiryDate: "2031-01-05",
   });

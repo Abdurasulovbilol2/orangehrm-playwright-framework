@@ -638,6 +638,10 @@ export class MyInfoPage {
     await this.getTextareaFromForm(form, /Comments/i).fill(data.comments);
 
     await form.getByRole("button", { name: /Save/i }).click();
+    await expect(this.page.locator(".oxd-toast").first()).toContainText(
+      /Successfully/,
+      { timeout: 15000 },
+    );
     const savedRow = this.page
       .locator(".oxd-table-row")
       .filter({ hasText: data.language })
