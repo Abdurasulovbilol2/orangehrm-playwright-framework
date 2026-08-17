@@ -632,7 +632,11 @@ export class MyInfoPage {
     const form = this.page.locator("form:visible").last();
     await expect(form).toBeVisible({ timeout: 15000 });
 
-    await this.selectFromFormDropdown(form, /Language/i, data.language);
+    const selectedLanguage = await this.selectFromFormDropdown(
+      form,
+      /Language/i,
+      data.language,
+    );
     await this.selectFromFormDropdown(form, /Fluency/i, data.fluency);
     await this.selectFromFormDropdown(form, /Competency/i, data.competency);
     await this.getTextareaFromForm(form, /Comments/i).fill(data.comments);
@@ -642,9 +646,11 @@ export class MyInfoPage {
       /Successfully/,
       { timeout: 15000 },
     );
+    // Match on the language that was actually selected: the requested one may not
+    // exist as master data, in which case selectFromFormDropdown falls back to another option.
     const savedRow = this.page
       .locator(".oxd-table-row")
-      .filter({ hasText: data.language })
+      .filter({ hasText: selectedLanguage })
       .filter({ hasText: data.comments })
       .first();
     await expect(savedRow).toBeVisible({ timeout: 30000 });
@@ -661,10 +667,26 @@ export class MyInfoPage {
       .locator("xpath=..");
 
     await section.getByRole("button", { name: /Add/i }).click();
-    const form = this.page.locator("form:visible").last();
+    let form = this.page.locator("form:visible").last();
     await expect(form).toBeVisible({ timeout: 15000 });
 
-    const selectedLicenseType = await this.selectFromFormDropdown(form, /License Type/i, data.licenseType);
+    // OrangeHRM hides License Types already assigned to this employee, so the
+    // requested type may not be selectable; create a fresh one if none remain.
+    const reopened = await this.ensureLicenseTypeOptionAvailable(
+      form,
+      data.licenseType,
+    );
+    if (reopened) {
+      await section.getByRole("button", { name: /Add/i }).click();
+      form = this.page.locator("form:visible").last();
+      await expect(form).toBeVisible({ timeout: 15000 });
+    }
+
+    const selectedLicenseType = await this.selectFromFormDropdown(
+      form,
+      /License Type/i,
+      data.licenseType,
+    );
     await this.getInputFromForm(form, /License Number/i).fill(
       data.licenseNumber,
     );
@@ -672,11 +694,68 @@ export class MyInfoPage {
     await this.getInputFromForm(form, /Expiry Date/i).fill(data.expiryDate);
 
     await form.getByRole("button", { name: /Save/i }).click();
-    const savedRow = this.page
+    await expect(this.page.locator(".oxd-toast").first()).toContainText(
+      /Successfully/,
+      { timeout: 15000 },
+    );
+
+    // Scope to the License section only, and match on the license type that was
+    // actually selected (may differ from the requested one, see above).
+    const savedRow = section
       .locator(".oxd-table-row")
       .filter({ hasText: selectedLicenseType })
       .first();
-    await expect(savedRow).toBeVisible({ timeout: 30000 });
+    try {
+      await expect(savedRow).toBeVisible({ timeout: 15000 });
+    } catch {
+      await this.page.reload({ waitUntil: "domcontentloaded" });
+      await expect(savedRow).toBeVisible({ timeout: 15000 });
+    }
+  }
+
+  // Returns true if the "Add License" form had to be closed and reopened
+  // (because a brand-new License Type was created via Admin in the meantime).
+  private async ensureLicenseTypeOptionAvailable(
+    form: ReturnType<Page["locator"]>,
+    licenseTypeSeed: string,
+  ): Promise<boolean> {
+    const dropdown = form
+      .locator("div.oxd-input-group")
+      .filter({ hasText: /License Type/i })
+      .locator(".oxd-select-text")
+      .first();
+    await dropdown.click();
+    await this.page.waitForLoadState("networkidle").catch(() => {});
+    const options = this.page.getByRole("option");
+    await expect(options.first()).toBeVisible({ timeout: 10000 });
+    const optionTexts = await options.allTextContents();
+    const hasSelectableOption = optionTexts.some(
+      (text) => text.trim() && !/select|no records found/i.test(text),
+    );
+    await this.page.keyboard.press("Escape");
+    if (hasSelectableOption) {
+      return false;
+    }
+
+    await form.getByRole("button", { name: /Cancel/i }).click();
+    const qualificationsUrl = this.page.url();
+    const uniqueLicenseTypeName = `${licenseTypeSeed} ${Date.now()}`;
+    await this.page.goto(
+      "https://opensource-demo.orangehrmlive.com/web/index.php/admin/viewLicenses",
+      { waitUntil: "domcontentloaded" },
+    );
+    await this.page.getByRole("button", { name: /Add/i }).click();
+    const adminForm = this.page.locator("form:visible").last();
+    await expect(adminForm).toBeVisible({ timeout: 15000 });
+    await adminForm.locator("input").first().fill(uniqueLicenseTypeName);
+    await adminForm.getByRole("button", { name: /Save/i }).click();
+    await expect(this.page.locator(".oxd-toast").first()).toContainText(
+      /Successfully/,
+      { timeout: 15000 },
+    );
+
+    await this.page.goto(qualificationsUrl, { waitUntil: "domcontentloaded" });
+    return true;
   }
 
   async assertJobDetailsLoaded() {
@@ -1039,9 +1118,25 @@ export class MyInfoPage {
       .first();
 
     await dropdown.click();
+    await this.page.waitForLoadState("networkidle").catch(() => {});
     const options = this.page.getByRole("option");
     await expect(options.first()).toBeVisible({ timeout: 10000 });
-    const optionTexts = await options.allTextContents();
+
+    // Long lists (e.g. Language, License Type) only render a subset of options
+    // until filtered, which can cause the wrong (first-rendered) option to be
+    // picked. Type the target text to narrow the rendered list first.
+    await this.page.keyboard.type(option, { delay: 30 });
+    await this.page.waitForTimeout(300);
+
+    let optionTexts = await options.allTextContents();
+    if (optionTexts.length === 0) {
+      // Typing didn't filter this dropdown (or filtered out everything);
+      // clear it and fall back to scanning the originally rendered list.
+      await this.page.keyboard.press("Control+A");
+      await this.page.keyboard.press("Backspace");
+      await expect(options.first()).toBeVisible({ timeout: 10000 });
+      optionTexts = await options.allTextContents();
+    }
     const normalizedOption = option.trim().toLowerCase();
     const requestedIndex = optionTexts.findIndex(
       (text) => text.trim().toLowerCase() === normalizedOption,

@@ -28,16 +28,21 @@ export class AdminPage {
       "h6.oxd-topbar-header-breadcrumb-module",
     );
 
-    try {
-      await expect(adminHeader).toContainText("Admin", { timeout: 15000 });
-    } catch {
-      // Retry a direct admin route once when the first render returns a blank page in CI.
-      await this.page.goto(this.adminUrl, {
-        waitUntil: "domcontentloaded",
-        timeout: 60000,
-      });
-      await expect(this.page).toHaveURL(/admin/, { timeout: 30000 });
-      await expect(adminHeader).toContainText("Admin", { timeout: 20000 });
+    // Retry a direct admin route when the first render returns a blank/stale page in CI.
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        await expect(adminHeader).toContainText("Admin", { timeout: 15000 });
+        return;
+      } catch (error) {
+        if (attempt === 3) {
+          throw error;
+        }
+        await this.page.goto(this.adminUrl, {
+          waitUntil: "domcontentloaded",
+          timeout: 60000,
+        });
+        await expect(this.page).toHaveURL(/admin/, { timeout: 30000 });
+      }
     }
   }
 
