@@ -537,7 +537,7 @@ export class MyInfoPage {
       .getByRole("heading", { name: /Work Experience/i })
       .locator("xpath=..");
 
-    await section.getByRole("button", { name: /Add/i }).click();
+    await section.getByRole("button", { name: /Add/i }).first().click();
     const form = this.page.locator("form:visible").last();
     await expect(form).toBeVisible({ timeout: 15000 });
 
@@ -568,7 +568,7 @@ export class MyInfoPage {
       .getByRole("heading", { name: /Education/i })
       .locator("xpath=..");
 
-    await section.getByRole("button", { name: /Add/i }).click();
+    await section.getByRole("button", { name: /Add/i }).first().click();
     const form = this.page.locator("form:visible").last();
     await expect(form).toBeVisible({ timeout: 15000 });
 
@@ -666,7 +666,7 @@ export class MyInfoPage {
       .getByRole("heading", { name: /License/i })
       .locator("xpath=..");
 
-    await section.getByRole("button", { name: /Add/i }).click();
+    await section.getByRole("button", { name: /Add/i }).first().click();
     let form = this.page.locator("form:visible").last();
     await expect(form).toBeVisible({ timeout: 15000 });
 
@@ -677,7 +677,7 @@ export class MyInfoPage {
       data.licenseType,
     );
     if (reopened) {
-      await section.getByRole("button", { name: /Add/i }).click();
+      await section.getByRole("button", { name: /Add/i }).first().click();
       form = this.page.locator("form:visible").last();
       await expect(form).toBeVisible({ timeout: 15000 });
     }
@@ -701,7 +701,7 @@ export class MyInfoPage {
 
     // Scope to the License section only, and match on the license type that was
     // actually selected (may differ from the requested one, see above).
-    const savedRow = section
+    const savedRow = this.page
       .locator(".oxd-table-row")
       .filter({ hasText: selectedLicenseType })
       .first();
@@ -1129,7 +1129,6 @@ export class MyInfoPage {
     let optionsVisible = false;
     for (let attempt = 0; attempt < 2; attempt++) {
       await dropdown.click();
-      await this.page.waitForLoadState("networkidle").catch(() => {});
       optionsVisible = await options
         .first()
         .isVisible({ timeout: 5000 })
