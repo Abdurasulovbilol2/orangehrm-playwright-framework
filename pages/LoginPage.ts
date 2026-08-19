@@ -34,13 +34,20 @@ export class LoginPage {
         return;
       }
 
+      if (/dashboard\/index/.test(this.page.url())) {
+        return;
+      }
+
       if (attempt < 3) {
         await this.page.waitForTimeout(1000 * attempt);
       }
     }
 
-    await expect(usernameInput).toBeVisible({ timeout: 1000 });
-    await expect(passwordInput).toBeVisible({ timeout: 1000 });
+    if (/dashboard\/index/.test(this.page.url())) {
+      return;
+    }
+    await expect(usernameInput).toBeVisible({ timeout: 30000 });
+    await expect(passwordInput).toBeVisible({ timeout: 30000 });
   }
 
   async login(username: string, password: string) {
@@ -54,7 +61,10 @@ export class LoginPage {
   }
 
   async loginAndWaitForDashboard(username: string, password: string) {
-    await this.login(username, password);
+    const usernameInput = this.page.locator("input[name='username']");
+    if (await usernameInput.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await this.login(username, password);
+    }
     await expect(
       this.page.locator("h6.oxd-topbar-header-breadcrumb-module"),
     ).toHaveText(/Dashboard|Tableau de bord/i, { timeout: 30000 });

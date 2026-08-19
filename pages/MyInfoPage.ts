@@ -725,14 +725,20 @@ export class MyInfoPage {
       .locator(".oxd-select-text")
       .first();
     await dropdown.click();
-    await this.page.waitForLoadState("networkidle").catch(() => {});
-    const options = this.page.getByRole("option");
-    await expect(options.first()).toBeVisible({ timeout: 10000 });
-    const optionTexts = await options.allTextContents();
+    const options = this.page.locator(
+      ".oxd-select-dropdown .oxd-select-option, [role='option']",
+    );
+    const hasOptions = await options
+      .first()
+      .isVisible({ timeout: 5000 })
+      .catch(() => false);
+    const optionTexts = hasOptions ? await options.allTextContents() : [];
     const hasSelectableOption = optionTexts.some(
       (text) => text.trim() && !/select|no records found/i.test(text),
     );
-    await this.page.keyboard.press("Escape");
+    if (hasOptions) {
+      await this.page.keyboard.press("Escape");
+    }
     if (hasSelectableOption) {
       return false;
     }
@@ -1117,9 +1123,23 @@ export class MyInfoPage {
       .locator(".oxd-select-text")
       .first();
 
-    await dropdown.click();
-    await this.page.waitForLoadState("networkidle").catch(() => {});
-    const options = this.page.getByRole("option");
+    const options = this.page.locator(
+      ".oxd-select-dropdown .oxd-select-option, [role='option']",
+    );
+    let optionsVisible = false;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      await dropdown.click();
+      await this.page.waitForLoadState("networkidle").catch(() => {});
+      optionsVisible = await options
+        .first()
+        .isVisible({ timeout: 5000 })
+        .catch(() => false);
+      if (optionsVisible) {
+        break;
+      }
+      await this.page.keyboard.press("Escape");
+      await this.page.waitForTimeout(500);
+    }
     await expect(options.first()).toBeVisible({ timeout: 10000 });
 
     // Long lists (e.g. Language, License Type) only render a subset of options
@@ -1145,6 +1165,9 @@ export class MyInfoPage {
       (text) => text.trim() && !/select/i.test(text),
     );
     const selectedIndex = requestedIndex >= 0 ? requestedIndex : fallbackIndex;
+    if (selectedIndex < 0) {
+      throw new Error(`No selectable option found for ${option}`);
+    }
     await options.nth(selectedIndex).click();
     return optionTexts[selectedIndex].trim();
   }

@@ -26,13 +26,13 @@ export class ClaimPage {
       timeout: 30000,
     });
 
-    const assignClaimButton = this.page.getByRole("button", {
-      name: /Assign Claim/,
+    const assignClaimLink = this.page.getByRole("link", {
+      name: "Assign Claim",
+      exact: true,
     });
-    if (
-      await assignClaimButton.isVisible({ timeout: 5000 }).catch(() => false)
-    ) {
-      await assignClaimButton.click();
+    if (await assignClaimLink.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await assignClaimLink.click();
+      await this.page.waitForLoadState("domcontentloaded");
     }
 
     await expect(
