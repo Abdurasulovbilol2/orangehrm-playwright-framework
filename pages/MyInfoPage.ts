@@ -492,7 +492,12 @@ export class MyInfoPage {
       .locator("xpath=..");
 
     await membershipsCard.getByRole("button", { name: /Add|Ajouter/i }).click();
-    const form = this.page.locator("form:visible").last();
+    const form = this.page
+      .locator("form:visible")
+      .filter({
+        has: this.page.getByRole("button", { name: /Save|Enregistrer/i }),
+      })
+      .first();
     await expect(form).toBeVisible({ timeout: 15000 });
 
     await this.selectFromFormDropdown(
@@ -1122,6 +1127,8 @@ export class MyInfoPage {
       .filter({ hasText: label })
       .locator(".oxd-select-text")
       .first();
+
+    await expect(dropdown).toBeVisible({ timeout: 15000 });
 
     const options = this.page.locator(
       ".oxd-select-dropdown .oxd-select-option, [role='option']",
