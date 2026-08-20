@@ -5,6 +5,10 @@ on:
     branches: ["main", "master"]
   pull_request:
     branches: ["main", "master"]
+  schedule:
+    # Runs daily at 06:00 UTC
+    - cron: "0 6 * * *"
+  workflow_dispatch: {}
 
 jobs:
   test:
@@ -49,3 +53,14 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 14
+
+      - name: Notify Slack on failure
+        if: failure()
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "Playwright tests failed on `${{ github.ref_name }}` (run: ${{ github.run_id }}). See: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
